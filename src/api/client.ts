@@ -11,6 +11,7 @@ import {
   CompanySettings,
   User
 } from '../types/index.js';
+import { demoStore, isDemoModeActive } from '../demo/demoStore.js';
 
 const envApiUrl = (import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
 const API_BASE = envApiUrl ? (envApiUrl.endsWith('/api') ? envApiUrl : `${envApiUrl}/api`) : '/api';
@@ -83,6 +84,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
+  // Demo Mode Helpers
+  isDemoMode: isDemoModeActive,
+  resetDemoData: () => demoStore.resetDemoData(),
+
   // Auth
   login: (credentials: { email: string; password: string }) =>
     request<{ token: string; user: User }>('/auth/login', {
@@ -90,28 +95,48 @@ export const api = {
       body: JSON.stringify(credentials),
     }),
 
-  getCurrentUser: () => request<User>('/auth/me'),
+  getCurrentUser: () => {
+    if (isDemoModeActive()) {
+      const saved = localStorage.getItem('bizlink_user');
+      if (saved) return Promise.resolve(JSON.parse(saved));
+    }
+    return request<User>('/auth/me');
+  },
 
-  changePassword: (data: { currentPassword: string; newPassword: string; confirmNewPassword?: string }) =>
-    request<{ success: boolean; message: string }>('/auth/change-password', {
+  changePassword: (data: { currentPassword: string; newPassword: string; confirmNewPassword?: string }) => {
+    if (isDemoModeActive()) {
+      return Promise.resolve({ success: true, message: 'Password updated successfully in demo mode' });
+    }
+    return request<{ success: boolean; message: string }>('/auth/change-password', {
       method: 'PUT',
       body: JSON.stringify(data),
-    }),
+    });
+  },
 
-  updateProfile: (profile: Partial<User>) =>
-    request<User>('/auth/profile', {
+  updateProfile: (profile: Partial<User>) => {
+    if (isDemoModeActive()) {
+      const saved = localStorage.getItem('bizlink_user');
+      const current = saved ? JSON.parse(saved) : {};
+      const updated = { ...current, ...profile };
+      localStorage.setItem('bizlink_user', JSON.stringify(updated));
+      return Promise.resolve(updated);
+    }
+    return request<User>('/auth/profile', {
       method: 'PUT',
       body: JSON.stringify(profile),
-    }),
+    });
+  },
 
   // Customers
   getCustomers: (params?: { search?: string; nationality?: string; status?: string; customerType?: string }) => {
+    if (isDemoModeActive()) return demoStore.getCustomers(params);
     const q = new URLSearchParams(params as any).toString();
     return request<Customer[]>(`/customers${q ? `?${q}` : ''}`);
   },
 
-  getCustomer: (id: string) =>
-    request<{
+  getCustomer: (id: string) => {
+    if (isDemoModeActive()) return demoStore.getCustomer(id);
+    return request<{
       customer: Customer;
       applications: Application[];
       documents: DocumentRecord[];
@@ -127,40 +152,50 @@ export const api = {
         totalPaid: number;
         totalOutstanding: number;
       };
-    }>(`/customers/${id}`),
+    }>(`/customers/${id}`);
+  },
 
-  createCustomer: (customer: Partial<Customer>) =>
-    request<Customer>('/customers', {
+  createCustomer: (customer: Partial<Customer>) => {
+    if (isDemoModeActive()) return demoStore.createCustomer(customer);
+    return request<Customer>('/customers', {
       method: 'POST',
       body: JSON.stringify(customer),
-    }),
+    });
+  },
 
-  updateCustomer: (id: string, customer: Partial<Customer>) =>
-    request<Customer>(`/customers/${id}`, {
+  updateCustomer: (id: string, customer: Partial<Customer>) => {
+    if (isDemoModeActive()) return demoStore.updateCustomer(id, customer);
+    return request<Customer>(`/customers/${id}`, {
       method: 'PUT',
       body: JSON.stringify(customer),
-    }),
+    });
+  },
 
-  deleteCustomer: (id: string) =>
-    request<{ success: boolean; message?: string }>(`/customers/${id}`, {
+  deleteCustomer: (id: string) => {
+    if (isDemoModeActive()) return demoStore.deleteCustomer(id);
+    return request<{ success: boolean; message?: string }>(`/customers/${id}`, {
       method: 'DELETE',
-    }),
+    });
+  },
 
   // Applications
   getApplications: (params?: { status?: string; priority?: string; serviceId?: string; customerId?: string; assignedEmployeeId?: string; search?: string }) => {
+    if (isDemoModeActive()) return demoStore.getApplications(params);
     const q = new URLSearchParams(params as any).toString();
     return request<Application[]>(`/applications${q ? `?${q}` : ''}`);
   },
 
-  getApplication: (id: string) =>
-    request<{
+  getApplication: (id: string) => {
+    if (isDemoModeActive()) return demoStore.getApplication(id);
+    return request<{
       application: Application;
       customer: Customer;
       service: ServiceItem;
       documents: DocumentRecord[];
       payments: PaymentRecord[];
       tasks: TaskRecord[];
-    }>(`/applications/${id}`),
+    }>(`/applications/${id}`);
+  },
 
   createApplication: (app: {
     customerId: string;
@@ -171,37 +206,48 @@ export const api = {
     governmentReferenceNo?: string;
     applicationDate?: string;
     targetCompletionDate?: string;
-  }) =>
-    request<Application>('/applications', {
+  }) => {
+    if (isDemoModeActive()) return demoStore.createApplication(app);
+    return request<Application>('/applications', {
       method: 'POST',
       body: JSON.stringify(app),
-    }),
+    });
+  },
 
-  updateApplicationStatus: (id: string, status: string, note?: string) =>
-    request<Application>(`/applications/${id}/status`, {
+  updateApplicationStatus: (id: string, status: string, note?: string) => {
+    if (isDemoModeActive()) return demoStore.updateApplicationStatus(id, status, note);
+    return request<Application>(`/applications/${id}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status, note }),
-    }),
+    });
+  },
 
-  assignApplication: (id: string, assignedEmployeeId: string) =>
-    request<Application>(`/applications/${id}/assign`, {
+  assignApplication: (id: string, assignedEmployeeId: string) => {
+    if (isDemoModeActive()) return demoStore.assignApplication(id, assignedEmployeeId);
+    return request<Application>(`/applications/${id}/assign`, {
       method: 'PUT',
       body: JSON.stringify({ assignedEmployeeId }),
-    }),
+    });
+  },
 
-  updateApplication: (id: string, updates: Partial<Application>) =>
-    request<Application>(`/applications/${id}`, {
+  updateApplication: (id: string, updates: Partial<Application>) => {
+    if (isDemoModeActive()) return demoStore.updateApplication(id, updates);
+    return request<Application>(`/applications/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
-    }),
+    });
+  },
 
-  deleteApplication: (id: string) =>
-    request<{ success: boolean }>(`/applications/${id}`, {
+  deleteApplication: (id: string) => {
+    if (isDemoModeActive()) return demoStore.deleteApplication(id);
+    return request<{ success: boolean }>(`/applications/${id}`, {
       method: 'DELETE',
-    }),
+    });
+  },
 
   // Documents
   uploadFile: (file: File) => {
+    if (isDemoModeActive()) return demoStore.uploadFile(file);
     const formData = new FormData();
     formData.append('file', file);
     return request<{ fileUrl: string; fileName: string; fileSize: number; mimeType: string }>('/documents/upload', {
@@ -211,119 +257,155 @@ export const api = {
   },
 
   getDocuments: (params?: { documentType?: string; status?: string; customerId?: string; applicationId?: string; search?: string; expiryRange?: string }) => {
+    if (isDemoModeActive()) return demoStore.getDocuments(params);
     const q = new URLSearchParams(params as any).toString();
     return request<DocumentRecord[]>(`/documents${q ? `?${q}` : ''}`);
   },
 
-  getExpiringDocuments: () =>
-    request<{
+  getExpiringDocuments: () => {
+    if (isDemoModeActive()) return demoStore.getExpiringDocuments();
+    return request<{
       next7Days: DocumentRecord[];
       next15Days: DocumentRecord[];
       next30Days: DocumentRecord[];
       next60Days: DocumentRecord[];
       expired: DocumentRecord[];
-    }>('/documents/expiring'),
+    }>('/documents/expiring');
+  },
 
-  uploadDocument: (doc: Partial<DocumentRecord>) =>
-    request<DocumentRecord>('/documents', {
+  uploadDocument: (doc: Partial<DocumentRecord>) => {
+    if (isDemoModeActive()) return demoStore.uploadDocument(doc);
+    return request<DocumentRecord>('/documents', {
       method: 'POST',
       body: JSON.stringify(doc),
-    }),
+    });
+  },
 
-  deleteDocument: (id: string) =>
-    request<{ success: boolean }>(`/documents/${id}`, {
+  deleteDocument: (id: string) => {
+    if (isDemoModeActive()) return demoStore.deleteDocument(id);
+    return request<{ success: boolean }>(`/documents/${id}`, {
       method: 'DELETE',
-    }),
+    });
+  },
 
   // Services
   getServices: (params?: { category?: string; activeOnly?: boolean; search?: string }) => {
+    if (isDemoModeActive()) return demoStore.getServices(params);
     const q = new URLSearchParams(params as any).toString();
     return request<ServiceItem[]>(`/services${q ? `?${q}` : ''}`);
   },
 
-  createService: (srv: Partial<ServiceItem>) =>
-    request<ServiceItem>('/services', {
+  createService: (srv: Partial<ServiceItem>) => {
+    if (isDemoModeActive()) return demoStore.createService(srv);
+    return request<ServiceItem>('/services', {
       method: 'POST',
       body: JSON.stringify(srv),
-    }),
+    });
+  },
 
-  updateService: (id: string, updates: Partial<ServiceItem>) =>
-    request<ServiceItem>(`/services/${id}`, {
+  updateService: (id: string, updates: Partial<ServiceItem>) => {
+    if (isDemoModeActive()) return demoStore.updateService(id, updates);
+    return request<ServiceItem>(`/services/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
-    }),
+    });
+  },
 
-  toggleService: (id: string) =>
-    request<ServiceItem>(`/services/${id}/toggle`, {
+  toggleService: (id: string) => {
+    if (isDemoModeActive()) return demoStore.toggleService(id);
+    return request<ServiceItem>(`/services/${id}/toggle`, {
       method: 'PUT',
-    }),
+    });
+  },
 
-  deleteService: (id: string) =>
-    request<{ success: boolean; message?: string }>(`/services/${id}`, {
+  deleteService: (id: string) => {
+    if (isDemoModeActive()) return demoStore.deleteService(id);
+    return request<{ success: boolean; message?: string }>(`/services/${id}`, {
       method: 'DELETE',
-    }),
+    });
+  },
 
   // Payments
   getPayments: (params?: { status?: string; paymentMethod?: string; customerId?: string; applicationId?: string; search?: string }) => {
+    if (isDemoModeActive()) return demoStore.getPayments(params);
     const q = new URLSearchParams(params as any).toString();
     return request<PaymentRecord[]>(`/payments${q ? `?${q}` : ''}`);
   },
 
-  getPaymentsSummary: () =>
-    request<{
+  getPaymentsSummary: () => {
+    if (isDemoModeActive()) return demoStore.getPaymentsSummary();
+    return request<{
       totalRevenue: number;
       totalOutstanding: number;
       todayRevenue: number;
       totalTransactions: number;
-    }>('/payments/summary'),
+    }>('/payments/summary');
+  },
 
-  recordPayment: (payment: Partial<PaymentRecord>) =>
-    request<PaymentRecord>('/payments', {
+  recordPayment: (payment: Partial<PaymentRecord>) => {
+    if (isDemoModeActive()) return demoStore.recordPayment(payment);
+    return request<PaymentRecord>('/payments', {
       method: 'POST',
       body: JSON.stringify(payment),
-    }),
+    });
+  },
 
-  deletePayment: (id: string) =>
-    request<{ success: boolean }>(`/payments/${id}`, {
+  deletePayment: (id: string) => {
+    if (isDemoModeActive()) return demoStore.deletePayment(id);
+    return request<{ success: boolean }>(`/payments/${id}`, {
       method: 'DELETE',
-    }),
+    });
+  },
 
   // Invoices
   getInvoices: (params?: { status?: string; customerId?: string; applicationId?: string; search?: string }) => {
+    if (isDemoModeActive()) return demoStore.getInvoices(params);
     const q = new URLSearchParams(params as any).toString();
     return request<Invoice[]>(`/invoices${q ? `?${q}` : ''}`);
   },
 
-  getInvoice: (id: string) =>
-    request<{
+  getInvoice: (id: string) => {
+    if (isDemoModeActive()) return demoStore.getInvoice(id);
+    return request<{
       invoice: Invoice;
       customer: Customer;
       company: CompanySettings;
       payments: PaymentRecord[];
-    }>(`/invoices/${id}`),
+    }>(`/invoices/${id}`);
+  },
 
-  createInvoice: (invoiceData: any) =>
-    request<Invoice>('/invoices', {
+  createInvoice: (invoiceData: any) => {
+    if (isDemoModeActive()) return demoStore.createInvoice(invoiceData);
+    return request<Invoice>('/invoices', {
       method: 'POST',
       body: JSON.stringify(invoiceData),
-    }),
+    });
+  },
 
-  updateInvoice: (id: string, updates: Partial<Invoice>) =>
-    request<Invoice>(`/invoices/${id}`, {
+  updateInvoice: (id: string, updates: Partial<Invoice>) => {
+    if (isDemoModeActive()) return demoStore.updateInvoice(id, updates);
+    return request<Invoice>(`/invoices/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
-    }),
+    });
+  },
 
-  deleteInvoice: (id: string) =>
-    request<{ success: boolean }>(`/invoices/${id}`, {
+  deleteInvoice: (id: string) => {
+    if (isDemoModeActive()) return demoStore.deleteInvoice(id);
+    return request<{ success: boolean }>(`/invoices/${id}`, {
       method: 'DELETE',
-    }),
+    });
+  },
 
   // Employees
-  getEmployees: () => request<User[]>('/employees'),
+  getEmployees: () => {
+    if (isDemoModeActive()) return demoStore.getEmployees();
+    return request<User[]>('/employees');
+  },
 
-  getEmployee: (id: string) =>
-    request<{
+  getEmployee: (id: string) => {
+    if (isDemoModeActive()) return demoStore.getEmployee(id);
+    return request<{
       employee: User;
       assignedApplications: Application[];
       assignedTasks: TaskRecord[];
@@ -334,33 +416,43 @@ export const api = {
         completedApplications: number;
         pendingTasks: number;
       };
-    }>(`/employees/${id}`),
+    }>(`/employees/${id}`);
+  },
 
-  addEmployee: (employee: Partial<User> & { password?: string }) =>
-    request<User>('/employees', {
+  addEmployee: (employee: Partial<User> & { password?: string }) => {
+    if (isDemoModeActive()) return demoStore.addEmployee(employee);
+    return request<User>('/employees', {
       method: 'POST',
       body: JSON.stringify(employee),
-    }),
+    });
+  },
 
-  updateEmployee: (id: string, updates: Partial<User> & { password?: string }) =>
-    request<User>(`/employees/${id}`, {
+  updateEmployee: (id: string, updates: Partial<User> & { password?: string }) => {
+    if (isDemoModeActive()) return demoStore.updateEmployee(id, updates);
+    return request<User>(`/employees/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
-    }),
+    });
+  },
 
-  resetEmployeePassword: (id: string, newPassword: string) =>
-    request<{ success: boolean; message: string }>(`/employees/${id}/reset-password`, {
+  resetEmployeePassword: (id: string, newPassword: string) => {
+    if (isDemoModeActive()) return demoStore.resetEmployeePassword(id);
+    return request<{ success: boolean; message: string }>(`/employees/${id}/reset-password`, {
       method: 'POST',
       body: JSON.stringify({ newPassword }),
-    }),
+    });
+  },
 
-  deleteEmployee: (id: string) =>
-    request<{ success: boolean; message: string }>(`/employees/${id}`, {
+  deleteEmployee: (id: string) => {
+    if (isDemoModeActive()) return demoStore.deleteEmployee(id);
+    return request<{ success: boolean; message: string }>(`/employees/${id}`, {
       method: 'DELETE',
-    }),
+    });
+  },
 
   // Tasks
   getTasks: (params?: { status?: string; priority?: string; employeeId?: string; myTasksOnly?: boolean }) => {
+    if (isDemoModeActive()) return demoStore.getTasks(params);
     const q = new URLSearchParams(params as any).toString();
     return request<{
       all: TaskRecord[];
@@ -380,48 +472,63 @@ export const api = {
     }>(`/tasks${q ? `?${q}` : ''}`);
   },
 
-  createTask: (task: Partial<TaskRecord>) =>
-    request<TaskRecord>('/tasks', {
+  createTask: (task: Partial<TaskRecord>) => {
+    if (isDemoModeActive()) return demoStore.createTask(task);
+    return request<TaskRecord>('/tasks', {
       method: 'POST',
       body: JSON.stringify(task),
-    }),
+    });
+  },
 
-  updateTask: (id: string, updates: Partial<TaskRecord>) =>
-    request<TaskRecord>(`/tasks/${id}`, {
+  updateTask: (id: string, updates: Partial<TaskRecord>) => {
+    if (isDemoModeActive()) return demoStore.updateTask(id, updates);
+    return request<TaskRecord>(`/tasks/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
-    }),
+    });
+  },
 
-  deleteTask: (id: string) =>
-    request<{ success: boolean }>(`/tasks/${id}`, {
+  deleteTask: (id: string) => {
+    if (isDemoModeActive()) return demoStore.deleteTask(id);
+    return request<{ success: boolean }>(`/tasks/${id}`, {
       method: 'DELETE',
-    }),
+    });
+  },
 
   // Notifications
-  getNotifications: () =>
-    request<{
+  getNotifications: () => {
+    if (isDemoModeActive()) return demoStore.getNotifications();
+    return request<{
       notifications: NotificationRecord[];
       unreadCount: number;
-    }>('/notifications'),
+    }>('/notifications');
+  },
 
-  markNotificationRead: (id: string) =>
-    request<{ success: boolean }>(`/notifications/${id}/read`, {
+  markNotificationRead: (id: string) => {
+    if (isDemoModeActive()) return demoStore.markNotificationRead(id);
+    return request<{ success: boolean }>(`/notifications/${id}/read`, {
       method: 'PUT',
-    }),
+    });
+  },
 
-  markAllNotificationsRead: () =>
-    request<{ success: boolean }>('/notifications/mark-all-read', {
+  markAllNotificationsRead: () => {
+    if (isDemoModeActive()) return demoStore.markAllNotificationsRead();
+    return request<{ success: boolean }>('/notifications/mark-all-read', {
       method: 'POST',
-    }),
+    });
+  },
 
-  clearReadNotifications: () =>
-    request<{ success: boolean; message: string }>('/notifications/clear-read', {
+  clearReadNotifications: () => {
+    if (isDemoModeActive()) return demoStore.clearReadNotifications();
+    return request<{ success: boolean; message: string }>('/notifications/clear-read', {
       method: 'DELETE',
-    }),
+    });
+  },
 
   // Reports
-  getReports: (range?: string) =>
-    request<{
+  getReports: (range?: string) => {
+    if (isDemoModeActive()) return demoStore.getReports();
+    return request<{
       kpi: {
         totalCustomers: number;
         activeApplications: number;
@@ -436,34 +543,46 @@ export const api = {
       monthlyPerformance: { month: string; revenue: number; applications: number }[];
       employeeWorkload: { name: string; activeApps: number; completedApps: number }[];
       expiryBreakdown: { valid: number; expiringSoon: number; expired: number };
-    }>(`/reports${range ? `?range=${range}` : ''}`),
+    }>(`/reports${range ? `?range=${range}` : ''}`);
+  },
 
   // Settings
-  getSettings: () => request<CompanySettings>('/settings'),
+  getSettings: () => {
+    if (isDemoModeActive()) return demoStore.getSettings();
+    return request<CompanySettings>('/settings');
+  },
 
-  updateSettings: (settings: Partial<CompanySettings>) =>
-    request<CompanySettings>('/settings', {
+  updateSettings: (settings: Partial<CompanySettings>) => {
+    if (isDemoModeActive()) return demoStore.updateSettings(settings);
+    return request<CompanySettings>('/settings', {
       method: 'PUT',
       body: JSON.stringify(settings),
-    }),
+    });
+  },
 
   // Activity Logs
-  getActivityLogs: () => request<ActivityLog[]>('/activity-logs'),
+  getActivityLogs: () => {
+    if (isDemoModeActive()) return demoStore.getActivityLogs();
+    return request<ActivityLog[]>('/activity-logs');
+  },
 
   // Global Search
-  searchGlobal: (query: string) =>
-    request<{
+  searchGlobal: (query: string) => {
+    if (isDemoModeActive()) return demoStore.searchGlobal(query);
+    return request<{
       customers: Customer[];
       applications: Application[];
       documents: DocumentRecord[];
       invoices: Invoice[];
       payments: PaymentRecord[];
       totalMatches: number;
-    }>(`/search?q=${encodeURIComponent(query)}`),
+    }>(`/search?q=${encodeURIComponent(query)}`);
+  },
 
   // Public Track
-  trackApplication: (trackingNumber: string) =>
-    request<{
+  trackApplication: (trackingNumber: string) => {
+    if (isDemoModeActive()) return demoStore.trackApplication(trackingNumber);
+    return request<{
       trackingNumber: string;
       serviceName: string;
       applicant: string;
@@ -483,5 +602,9 @@ export const api = {
         contactPhone: string;
         supportEmail: string;
       };
-    }>(`/track/${encodeURIComponent(trackingNumber)}`),
+    }>(`/track/${encodeURIComponent(trackingNumber)}`);
+  },
 };
+
+export { isDemoModeActive };
+

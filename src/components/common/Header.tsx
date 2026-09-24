@@ -24,7 +24,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onOpenSearch }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isDemoMode } = useAuth();
   const [notifications, setNotifications] = useState<NotificationRecord[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -112,9 +112,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onOpenSearch }
           </button>
 
           <div>
-            <h1 className="text-base sm:text-lg font-bold text-[#0B2541] leading-tight">
-              {getGreeting()}, {user?.name?.split(' ')[0] || 'Staff'}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-bold text-[#0B2541] leading-tight">
+                {getGreeting()}, {user?.name?.split(' ')[0] || 'Staff'}
+              </h1>
+              {isDemoMode && (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-100/90 text-amber-900 border border-amber-300 text-[10px] font-bold tracking-wider uppercase shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+                  DEMO MODE
+                </span>
+              )}
+            </div>
             <p className="text-[11px] text-slate-500 hidden sm:block">
               {user?.designation ? `${user.designation} • ` : ''}BizLink Operations Management Portal
             </p>

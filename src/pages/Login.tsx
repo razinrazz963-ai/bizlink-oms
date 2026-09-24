@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
-import { Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { Modal } from '../components/common/Modal.js';
 
 export const Login: React.FC = () => {
@@ -12,13 +12,28 @@ export const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
 
-  const { login } = useAuth();
+  const { login, enterDemoMode } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Frontend-only Temporary Demo Authentication
+    if (cleanEmail === 'demo@bizlink.ae') {
+      if (password === 'Demo@12345') {
+        enterDemoMode();
+        navigate('/dashboard');
+        return;
+      } else {
+        setError('Invalid demo credentials.');
+        setLoading(false);
+        return;
+      }
+    }
 
     try {
       await login(email.trim(), password);
@@ -201,6 +216,25 @@ export const Login: React.FC = () => {
                 </>
               )}
             </button>
+
+            {/* Demo Login Option */}
+            <div className="pt-3 border-t border-slate-100 flex flex-col items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('demo@bizlink.ae');
+                  setPassword('Demo@12345');
+                  setError('');
+                }}
+                className="w-full py-2 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium flex items-center justify-center gap-2 transition-colors shadow-xs"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#31B8C1]" />
+                <span>Fill Demo Login Credentials</span>
+              </button>
+              <span className="text-[10px] text-slate-400 mt-1">
+                Demo access: demo@bizlink.ae / Demo@12345
+              </span>
+            </div>
           </form>
 
           {/* Public Tracking Link */}
