@@ -12,7 +12,8 @@ import {
   User
 } from '../types/index.js';
 
-const API_BASE = '/api';
+const envApiUrl = (import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
+const API_BASE = envApiUrl ? (envApiUrl.endsWith('/api') ? envApiUrl : `${envApiUrl}/api`) : '/api';
 
 function getHeaders(isFormData = false): HeadersInit {
   const token = localStorage.getItem('bizlink_token');
@@ -28,13 +29,21 @@ function getHeaders(isFormData = false): HeadersInit {
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const isFormData = options.body instanceof FormData;
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers: {
-      ...getHeaders(isFormData),
-      ...options.headers,
-    },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers: {
+        ...getHeaders(isFormData),
+        ...options.headers,
+      },
+    });
+  } catch (netErr: any) {
+    throw new Error(
+      'Unable to connect to the operations server. Please check your network connection or verify that the backend API service is online.'
+    );
+  }
 
   if (response.status === 401) {
     if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/track')) {
@@ -45,13 +54,28 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   }
 
   if (!response.ok) {
-    let errorMsg = 'An unexpected error occurred';
+    let errorMsg = '';
     try {
       const errorData = await response.json();
-      errorMsg = errorData.error || errorData.message || errorMsg;
+      errorMsg = errorData.error || errorData.message || '';
     } catch {
-      // ignore
+      // Body was not JSON (e.g. HTML 404/502/503 from edge proxy)
     }
+
+    if (!errorMsg) {
+      if (response.status === 401) {
+        errorMsg = 'Invalid email or password. Please verify your credentials.';
+      } else if (response.status === 403) {
+        errorMsg = 'Account deactivated or unauthorized access.';
+      } else if (response.status === 404) {
+        errorMsg = 'Backend service unavailable (API endpoint not found).';
+      } else if (response.status >= 500) {
+        errorMsg = 'Internal server error. Please try again shortly or contact support.';
+      } else {
+        errorMsg = `Request failed with HTTP status ${response.status}.`;
+      }
+    }
+
     throw new Error(errorMsg);
   }
 

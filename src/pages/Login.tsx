@@ -5,8 +5,8 @@ import { Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle } from '
 import { Modal } from '../components/common/Modal.js';
 
 export const Login: React.FC = () => {
-  const [email, setEmail] = useState('admin@bizlink.ae');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

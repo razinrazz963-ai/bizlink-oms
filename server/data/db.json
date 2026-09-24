@@ -1,54 +1,5 @@
 {
-  "users": [
-    {
-      "id": "usr-admin",
-      "employeeId": "BL-EMP-0001",
-      "name": "System Administrator",
-      "email": "admin@bizlink.ae",
-      "passwordHash": "$2a$10$fsKySw3OXpMFqW3Xbv0cfumUKjM2iPImlxjMgG.2TOJ/P3o1Ygiky",
-      "phone": "",
-      "designation": "System Administrator",
-      "department": "Administration",
-      "role": "admin",
-      "permissions": [
-        "customers.view",
-        "customers.create",
-        "customers.edit",
-        "customers.delete",
-        "applications.view",
-        "applications.create",
-        "applications.edit",
-        "applications.assign",
-        "applications.status",
-        "documents.view",
-        "documents.upload",
-        "documents.download",
-        "documents.delete",
-        "payments.view",
-        "payments.create",
-        "payments.edit",
-        "invoices.view",
-        "invoices.create",
-        "invoices.edit",
-        "tasks.view",
-        "tasks.create",
-        "tasks.edit",
-        "tasks.delete",
-        "employees.view",
-        "employees.create",
-        "employees.edit",
-        "employees.disable",
-        "reports.view",
-        "services.manage",
-        "settings.manage",
-        "roles.manage",
-        "notifications.manage"
-      ],
-      "status": "active",
-      "createdAt": "2026-09-24T06:52:51.259Z",
-      "lastLogin": "2026-09-24T06:54:35.862Z"
-    }
-  ],
+  "users": [],
   "customers": [],
   "applications": [],
   "documents": [],
@@ -72,7 +23,7 @@
         "Offer Letter"
       ],
       "estimatedDays": 7,
-      "createdAt": "2026-09-24T06:52:19.354Z"
+      "createdAt": "2026-09-24T00:00:00.000Z"
     },
     {
       "id": "srv-2",
@@ -92,14 +43,14 @@
         "Old Emirates ID (if renewal)"
       ],
       "estimatedDays": 4,
-      "createdAt": "2026-09-24T06:52:19.355Z"
+      "createdAt": "2026-09-24T00:00:00.000Z"
     },
     {
       "id": "srv-3",
       "name": "Amer Service - Residency Cancellation",
       "code": "SRV-AMER-03",
       "category": "Amer Services",
-      "description": "GDRFA official cancellation of residency visa for individuals or dependents.",
+      "description": "General Directorate of Residency and Foreigners Affairs (GDRFA) visa cancellation processing.",
       "basePrice": 0,
       "governmentFee": 0,
       "serviceFee": 0,
@@ -107,19 +58,19 @@
       "vatApplicable": true,
       "isActive": true,
       "requiredDocuments": [
-        "Passport Copy",
+        "Original Passport / Copy",
         "Original Emirates ID",
-        "Labor Card Cancellation"
+        "Company Clearance Letter"
       ],
       "estimatedDays": 2,
-      "createdAt": "2026-09-24T06:52:19.355Z"
+      "createdAt": "2026-09-24T00:00:00.000Z"
     },
     {
       "id": "srv-4",
-      "name": "Tasheel - Labor Contract Amendment",
+      "name": "Tasheel - Labor Contract Submission",
       "code": "SRV-TASH-04",
       "category": "Tasheel Services",
-      "description": "MOHRE labor contract modifications, salary adjustments, and job title updates.",
+      "description": "Ministry of Human Resources and Emiratisation (MOHRE) work permit and electronic labor contract submission.",
       "basePrice": 0,
       "governmentFee": 0,
       "serviceFee": 0,
@@ -127,19 +78,19 @@
       "vatApplicable": true,
       "isActive": true,
       "requiredDocuments": [
-        "Trade License Copy",
-        "Establishment Card",
-        "Signed Amendment Form"
+        "MOHRE Approved Offer Letter",
+        "Employee Passport Copy",
+        "Valid Trade License Copy"
       ],
       "estimatedDays": 3,
-      "createdAt": "2026-09-24T06:52:19.355Z"
+      "createdAt": "2026-09-24T00:00:00.000Z"
     },
     {
       "id": "srv-5",
-      "name": "Tadbeer - Domestic Worker Processing",
+      "name": "Tadbeer - Domestic Worker Visa",
       "code": "SRV-TADB-05",
       "category": "Tadbeer Services",
-      "description": "Domestic worker sponsorship documentation, medical fitness screening, and contract clearance.",
+      "description": "MOHRE Tadbeer domestic helper and driver visa processing under family sponsorship.",
       "basePrice": 0,
       "governmentFee": 0,
       "serviceFee": 0,
@@ -147,19 +98,19 @@
       "vatApplicable": true,
       "isActive": true,
       "requiredDocuments": [
-        "Sponsor Passport & EID",
-        "Salary Certificate/Tenancy Contract",
-        "Worker Passport & Photo"
+        "Sponsor Passport & Visa Copy",
+        "Sponsor Salary Certificate / Ejari",
+        "Worker Passport & Medical Report"
       ],
-      "estimatedDays": 10,
-      "createdAt": "2026-09-24T06:52:19.355Z"
+      "estimatedDays": 5,
+      "createdAt": "2026-09-24T00:00:00.000Z"
     },
     {
       "id": "srv-6",
-      "name": "Legal Translation & Attestation",
-      "code": "SRV-DOC-06",
-      "category": "Document Clearing",
-      "description": "Ministry of Foreign Affairs (MOFA) attestation and sworn legal translation.",
+      "name": "Document Attestation (MOFA / Consulate)",
+      "code": "SRV-ATT-06",
+      "category": "Attestation",
+      "description": "Official Ministry of Foreign Affairs (MOFA) and embassy legal document authentication.",
       "basePrice": 0,
       "governmentFee": 0,
       "serviceFee": 0,
@@ -167,18 +118,36 @@
       "vatApplicable": true,
       "isActive": true,
       "requiredDocuments": [
-        "Original Document",
-        "Passport Copy"
+        "Original Certificate",
+        "Applicant Passport Copy"
       ],
       "estimatedDays": 5,
-      "createdAt": "2026-09-24T06:52:19.355Z"
+      "createdAt": "2026-09-24T00:00:00.000Z"
     },
     {
       "id": "srv-7",
-      "name": "UAE Business Setup & Commercial License",
-      "code": "SRV-BIZ-07",
+      "name": "Legal Translation (Arabic / English)",
+      "code": "SRV-TRANS-07",
+      "category": "Translation",
+      "description": "Ministry of Justice certified legal translation for government submittals and court filings.",
+      "basePrice": 0,
+      "governmentFee": 0,
+      "serviceFee": 0,
+      "totalFee": 0,
+      "vatApplicable": true,
+      "isActive": true,
+      "requiredDocuments": [
+        "Original Document (High Resolution Scan)"
+      ],
+      "estimatedDays": 2,
+      "createdAt": "2026-09-24T00:00:00.000Z"
+    },
+    {
+      "id": "srv-8",
+      "name": "UAE Business License / Trade License Setup",
+      "code": "SRV-BIZ-08",
       "category": "Business Setup",
-      "description": "Department of Economy and Tourism (DET) LLC company formation, initial approval, and MOA clearance.",
+      "description": "Mainland (DED) or Freezone new company formation, initial approvals, and memorandum drafting.",
       "basePrice": 0,
       "governmentFee": 0,
       "serviceFee": 0,
@@ -191,35 +160,14 @@
         "Tenancy Contract (Ejari)"
       ],
       "estimatedDays": 14,
-      "createdAt": "2026-09-24T06:52:19.355Z"
+      "createdAt": "2026-09-24T00:00:00.000Z"
     }
   ],
   "payments": [],
   "invoices": [],
   "tasks": [],
   "notifications": [],
-  "activityLogs": [
-    {
-      "id": "act-1790232875879-yscpz",
-      "userId": "usr-admin",
-      "userName": "System Administrator",
-      "userRole": "admin",
-      "action": "LOGIN",
-      "entityType": "auth",
-      "description": "System Administrator logged into the portal",
-      "timestamp": "2026-09-24T06:54:35.879Z"
-    },
-    {
-      "id": "act-1790232771259-1qqsi",
-      "userId": "usr-admin",
-      "userName": "System Administrator",
-      "userRole": "admin",
-      "action": "RESET_DATABASE",
-      "entityType": "settings",
-      "description": "Database reset to clean state with 0 records",
-      "timestamp": "2026-09-24T06:52:51.259Z"
-    }
-  ],
+  "activityLogs": [],
   "settings": {
     "companyName": "BizLink Services",
     "subtitle": "Operations Management System",

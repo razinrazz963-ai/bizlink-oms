@@ -30,7 +30,16 @@ interface DatabaseData {
   settings: CompanySettings;
 }
 
-const DB_FILE = path.resolve(process.cwd(), 'server/data/db.json');
+const DB_DIR = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR)
+  : path.resolve(process.cwd(), 'server/data');
+
+const DB_FILE = path.join(DB_DIR, 'db.json');
+
+// Ensure database directory exists
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
 
 // Configurable standard UAE service templates
 const INITIAL_SERVICES: ServiceItem[] = [
@@ -178,26 +187,8 @@ class DatabaseStore {
   }
 
   public resetToCleanState(): void {
-    const salt = bcrypt.genSaltSync(10);
-    const adminPasswordHash = bcrypt.hashSync('admin123', salt);
-
     this.data = {
-      users: [
-        {
-          id: 'usr-admin',
-          employeeId: 'BL-EMP-0001',
-          name: 'System Administrator',
-          email: 'admin@bizlink.ae',
-          passwordHash: adminPasswordHash,
-          phone: '',
-          designation: 'System Administrator',
-          department: 'Administration',
-          role: 'admin',
-          permissions: [...ALL_PERMISSIONS],
-          status: 'active',
-          createdAt: new Date().toISOString()
-        }
-      ],
+      users: [],
       customers: [],
       applications: [],
       documents: [],
@@ -247,26 +238,8 @@ class DatabaseStore {
       console.error('Error loading db.json, initializing fresh store:', e);
     }
 
-    const salt = bcrypt.genSaltSync(10);
-    const adminPasswordHash = bcrypt.hashSync('admin123', salt);
-
     const initialData: DatabaseData = {
-      users: [
-        {
-          id: 'usr-admin',
-          employeeId: 'BL-EMP-0001',
-          name: 'System Administrator',
-          email: 'admin@bizlink.ae',
-          passwordHash: adminPasswordHash,
-          phone: '',
-          designation: 'System Administrator',
-          department: 'Administration',
-          role: 'admin',
-          permissions: [...ALL_PERMISSIONS],
-          status: 'active',
-          createdAt: new Date().toISOString()
-        }
-      ],
+      users: [],
       customers: [],
       applications: [],
       documents: [],
@@ -278,6 +251,25 @@ class DatabaseStore {
       activityLogs: [],
       settings: INITIAL_SETTINGS
     };
+
+    if (process.env.ADMIN_EMAIL && process.env.ADMIN_INITIAL_PASSWORD) {
+      const salt = bcrypt.genSaltSync(10);
+      const adminPasswordHash = bcrypt.hashSync(process.env.ADMIN_INITIAL_PASSWORD, salt);
+      initialData.users.push({
+        id: 'usr-admin',
+        employeeId: 'BL-EMP-0001',
+        name: 'System Administrator',
+        email: process.env.ADMIN_EMAIL.trim(),
+        passwordHash: adminPasswordHash,
+        phone: '',
+        designation: 'System Administrator',
+        department: 'Administration',
+        role: 'admin',
+        permissions: [...ALL_PERMISSIONS],
+        status: 'active',
+        createdAt: new Date().toISOString()
+      });
+    }
 
     this.saveDataDirect(initialData);
     return initialData;

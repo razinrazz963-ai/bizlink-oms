@@ -9,7 +9,9 @@
     "server:dev": "tsx watch server/src/index.ts",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "server:start": "tsx server/src/index.ts"
+    "server:start": "tsx server/src/index.ts",
+    "server:create-admin": "tsx server/src/scripts/createAdmin.ts",
+    "start": "tsx server/src/index.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
